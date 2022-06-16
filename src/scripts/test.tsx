@@ -1,10 +1,10 @@
-import * as playwright from 'playwright';
-import { performance } from 'perf_hooks';
+import * as playwright from "playwright";
+import { performance } from "perf_hooks";
 
 async function main() {
-  const url = 'http://localhost:3000';
+  const url = "http://localhost:3000";
   const rendersPerFramework = 100;
-  const attempts = 10;
+  const attempts = 3;
 
   const type = playwright.chromium;
   const browser = await type.launch();
@@ -12,31 +12,48 @@ async function main() {
 
   await page.goto(url);
 
-  const measureFramework = async (framework: 'styled' | 'emotion') => {
-    console.log('Testing:', framework);
+  const measureFramework = async (
+    framework: "styled" | "emotion" | "chakra"
+  ) => {
+    console.log("Testing:", framework);
     const start = performance.now();
     for (let index = 0; index < rendersPerFramework; index++) {
       await page.click(`#${framework}`);
-      await page.waitForSelector('#root');
-      await page.click('#none');
+      await page.waitForSelector("#root");
+      await page.click("#none");
     }
     const end = performance.now();
     return end - start;
-  }
+  };
 
   let totalStyled = 0;
   let totalEmotion = 0;
+  let totalChakra = 0;
 
   for (let index = 0; index < attempts; index++) {
     console.log(`--- Attempt ${index + 1} ---`);
-    totalStyled += await measureFramework('styled');
-    totalEmotion += await measureFramework('emotion');
+    totalStyled += await measureFramework("styled");
+    totalEmotion += await measureFramework("emotion");
+    totalChakra += await measureFramework("chakra");
   }
 
-  console.log('-- RESULTS ---');
-  console.log('Average Styled:', totalStyled / (rendersPerFramework * attempts), 'ms');
-  console.log('Average Emotion:', totalEmotion / (rendersPerFramework * attempts), 'ms');
-  
+  console.log("-- RESULTS ---");
+  console.log(
+    "Average Styled:",
+    totalStyled / (rendersPerFramework * attempts),
+    "ms"
+  );
+  console.log(
+    "Average Emotion:",
+    totalEmotion / (rendersPerFramework * attempts),
+    "ms"
+  );
+  console.log(
+    "Average Chakra UI:",
+    totalChakra / (rendersPerFramework * attempts),
+    "ms"
+  );
+
   await browser.close();
 }
 
